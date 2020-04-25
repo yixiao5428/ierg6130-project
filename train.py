@@ -1,10 +1,14 @@
 import argparse
 from collections import deque
 
+import os
+
 import gym
 import numpy as np
 import torch
+
 from competitive_pong.utils import DummyVecEnv, SubprocVecEnv
+from competitive_pong.utils.atari_wrappers import make_env_a2c_atari
 
 from core.a2c_trainer import A2CTrainer, a2c_config
 from core.ppo_trainer import PPOTrainer, ppo_config
@@ -62,10 +66,11 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-def make_envs(env_id, num_envs, asynchronous):
+def make_envs(env_id, log_dir, num_envs, asynchronous):
     """
 
     :param env_id:
+    :param log_dir:
     :param num_envs:
     :param asynchronous:
     :return:
@@ -75,6 +80,9 @@ def make_envs(env_id, num_envs, asynchronous):
     print("Setup environment Pong-ram-v0.")
     envs = [lambda: gym.make(env_id) for i in range(num_envs)]
     envs = SubprocVecEnv(envs) if asynchronous else DummyVecEnv(envs)
+
+    if log_dir:
+        os.makedirs(log_dir, exist_ok=True)
 
     return envs
 
@@ -108,8 +116,8 @@ def train(args):
     # Create vectorized environments
     num_envs = args.num_envs
     env_id = args.env_id
-    envs = make_envs(env_id, num_envs, False)
-    eval_envs = make_envs(env_id, num_envs, False)
+    envs = make_envs(env_id, log_dir, num_envs, False)
+    eval_envs = make_envs(env_id, log_dir, num_envs, False)
 
     # Setup trainer
     test = False
