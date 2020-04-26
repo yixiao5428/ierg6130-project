@@ -20,10 +20,10 @@ class ActorCritic(nn.Module):
                                           lambda x: nn.init.constant_(x, 0),
                                           nn.init.calculate_gain('relu'))
 
-        num_output_fc = 32
-        self.fc1 = nn.Linear(input_shape[0], 32)
-        self.fc2 = nn.Linear(32, 64)
-        self.fc3 = nn.Linear(64, num_output_fc)
+        num_output_fc = 256
+        self.fc1 = nn.Linear(input_shape[0], 256)
+        self.fc2 = nn.Linear(256, 256)
+        self.fc3 = nn.Linear(256, num_output_fc)
         # The network structure is designed for 42X42 observation.
         # self.conv1 = init_(
         #     nn.Conv2d(input_shape[0], 16, kernel_size=4, stride=2))
