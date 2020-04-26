@@ -23,7 +23,8 @@ class ActorCritic(nn.Module):
         num_output_fc = 512
         self.fc1 = nn.Linear(input_shape[0], 256)
         self.fc2 = nn.Linear(256, 1024)
-        self.fc3 = nn.Linear(1024, num_output_fc)
+        self.fc3 = nn.Linear(1024, 512)
+        self.fc4 = nn.Linear(512, num_output_fc)
         # The network structure is designed for 42X42 observation.
         # self.conv1 = init_(
         #     nn.Conv2d(input_shape[0], 16, kernel_size=4, stride=2))
@@ -46,6 +47,7 @@ class ActorCritic(nn.Module):
         x = F.relu(self.fc1(inputs / 255.0))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
+        x = F.relu(self.fc4(x))
         x = x.view(x.size(0), -1)
         value = self.critic_linear(x)
         logits = self.actor_linear(x)

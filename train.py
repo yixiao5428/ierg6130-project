@@ -66,7 +66,7 @@ def train(args):
     # Create vectorized environments
     num_envs = args.num_envs
     env_id = args.env_id
-    envs = make_envs(env_id, log_dir, num_envs, False)
+    envs = make_envs(env_id, log_dir, num_envs, True)
     eval_envs = make_envs(env_id, log_dir, num_envs, False)
 
     # Setup trainer
