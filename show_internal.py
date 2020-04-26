@@ -6,7 +6,7 @@ import torch
 from core.network import ActorCritic
 
 if __name__ == "__main__":
-    trainer_path = "/tmp/ierg6130-project/PPO/checkpoint-iter200.pkl"
+    trainer_path = "/tmp/ierg6130-project/PPO/checkpoint-iter5800.pkl"
     save_path = trainer_path
     model = ActorCritic(torch.Size([512]), 6)
     if os.path.isfile(save_path):

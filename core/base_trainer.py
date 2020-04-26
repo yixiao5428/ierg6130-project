@@ -40,7 +40,6 @@ class BaseTrainer:
         if _test:
             self.model = MLP(num_feats[0], self.num_actions)
         else:
-            print("self.num_feats, self.num_actions", self.num_feats, self.num_actions)
             self.model = ActorCritic(self.num_feats, self.num_actions)
         self.model = self.model.to(self.device)
         self.model.train()
@@ -72,14 +71,9 @@ class BaseTrainer:
         #   2. Remember to check the shape of action and log prob.
         #   3. When deterministic is True, return the action with maximum
         #    probability
-        actions = None
-        action_log_probs = None
-        dist = Categorical(logits=logits)
-        if deterministic:
-            actions = dist.probs.argmax(dim=1, keepdim=True)
-        else:
-            actions = dist.sample().view(-1, 1)
-        action_log_probs = torch.nn.functional.log_softmax(logits, dim=1).gather(1, actions)
+        m = torch.distributions.categorical.Categorical(logits=logits)
+        actions = m.sample()
+        action_log_probs = m.log_prob(actions)
 
         return values.view(-1, 1), actions.view(-1, 1), action_log_probs.view(
             -1, 1)
@@ -91,11 +85,12 @@ class BaseTrainer:
         # [TODO] Get the log probability of specified action, and the entropy of
         #  current distribution w.r.t. the output logits.
         # Hint: Use proper distribution to help you
-        action_log_probs = None
-        dist_entropy = None
-        dist = Categorical(logits=logits)
-        action_log_probs = torch.nn.functional.log_softmax(logits, dim=1).gather(1, act)
-        dist_entropy = dist.entropy().mean()
+        m = torch.distributions.categorical.Categorical(logits=logits)
+        # print('logits', logits.shape)
+        # print('act', act.shape)
+        action_log_probs = m.log_prob(act.reshape(-1))
+        # print('action_log_probs', action_log_probs.shape)
+        dist_entropy = m.entropy().mean()
 
         assert dist_entropy.shape == ()
         return values.view(-1, 1), action_log_probs.view(-1, 1), dist_entropy
@@ -124,3 +119,6 @@ class BaseTrainer:
             )
             self.model.load_state_dict(state_dict["model"])
             self.optimizer.load_state_dict(state_dict["optimizer"])
+            print("Loaded checkpoint to the trainer:", save_path)
+        else:
+            print("Failed to load:", save_path, os.path.abspath(save_path), os.path.isfile(save_path))
