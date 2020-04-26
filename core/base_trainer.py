@@ -40,6 +40,7 @@ class BaseTrainer:
         if _test:
             self.model = MLP(num_feats[0], self.num_actions)
         else:
+            print("self.num_feats, self.num_actions", self.num_feats, self.num_actions)
             self.model = ActorCritic(self.num_feats, self.num_actions)
         self.model = self.model.to(self.device)
         self.model.train()

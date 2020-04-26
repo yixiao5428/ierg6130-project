@@ -16,56 +16,6 @@ from core.utils import verify_log_dir, pretty_print, Timer, evaluate, \
     summary, save_progress, FrameStackTensor, step_envs
 
 
-gym.logger.set_level(40)
-
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--algo",
-    default="A2C",
-    type=str,
-    help="(Required) The algorithm you want to run. Must in [PPO, A2C]."
-)
-parser.add_argument(
-    "--log-dir",
-    default="/tmp/ierg6130-project/",
-    type=str,
-    help="The path of directory that you want to store the data to. "
-         "Default: /tmp/ierg6130-project/ppo/"
-)
-parser.add_argument(
-    "--num-envs",
-    default=15,
-    type=int,
-    help="The number of parallel environments. Default: 15"
-)
-parser.add_argument(
-    "--learning-rate", "-LR",
-    default=5e-4,
-    type=float,
-    help="The learning rate. Default: 5e-4"
-)
-parser.add_argument(
-    "--seed",
-    default=100,
-    type=int,
-    help="The random seed. Default: 100"
-)
-parser.add_argument(
-    "--max-steps",
-    "-N",
-    default=1e7,
-    type=float,
-    help="The random seed. Default: 1e7"
-)
-parser.add_argument(
-    "--env-id",
-    default="Pong-ram-v0",
-    type=str,
-    help="The environment id, Default: Pong-ram-v0"
-)
-args = parser.parse_args()
-
-
 def make_envs(env_id, log_dir, num_envs, asynchronous):
     """
 
@@ -263,6 +213,55 @@ def train(args):
     trainer.save_w(log_dir, "final")
     envs.close()
 
+def parse_args_for_train():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--algo",
+        default="A2C",
+        type=str,
+        help="(Required) The algorithm you want to run. Must in [PPO, A2C]."
+    )
+    parser.add_argument(
+        "--log-dir",
+        default="/tmp/ierg6130-project/",
+        type=str,
+        help="The path of directory that you want to store the data to. "
+            "Default: /tmp/ierg6130-project/ppo/"
+    )
+    parser.add_argument(
+        "--num-envs",
+        default=15,
+        type=int,
+        help="The number of parallel environments. Default: 15"
+    )
+    parser.add_argument(
+        "--learning-rate", "-LR",
+        default=5e-4,
+        type=float,
+        help="The learning rate. Default: 5e-4"
+    )
+    parser.add_argument(
+        "--seed",
+        default=100,
+        type=int,
+        help="The random seed. Default: 100"
+    )
+    parser.add_argument(
+        "--max-steps",
+        "-N",
+        default=1e7,
+        type=float,
+        help="The random seed. Default: 1e7"
+    )
+    parser.add_argument(
+        "--env-id",
+        default="Pong-ram-v0",
+        type=str,
+        help="The environment id, Default: Pong-ram-v0"
+    )
+    args = parser.parse_args()
+    return args
 
 if __name__ == '__main__':
+    gym.logger.set_level(40)
     train(args)
