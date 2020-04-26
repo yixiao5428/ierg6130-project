@@ -264,4 +264,4 @@ def parse_args_for_train():
 
 if __name__ == '__main__':
     gym.logger.set_level(40)
-    train(args)
+    train(parse_args_for_train())

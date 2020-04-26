@@ -23,8 +23,8 @@ def main():
     args = parser.parse_args()
 
     env = gym.make(args.game)
-    num_episodes = 20
-    num_maxstep = 100
+    num_episodes = 1 # 20
+    num_maxstep = 1 # 100
 
     agent = RandomAgent(env.action_space)
 
@@ -39,6 +39,7 @@ def main():
             # env.render()
             action = agent.act(observation, reward, done)
             observation, reward, done, info = env.step(action)
+            print("observation.shape", observation.shape)
 
             # Clone the system state as a int type
             clone_state = env.ale.cloneSystemState()
