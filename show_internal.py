@@ -8,7 +8,6 @@ import torch
 # from core.utils import verify_log_dir, pretty_print, Timer, evaluate, \
 #     summary, save_progress, FrameStackTensor, step_envs
 from core.network import ActorCritic
-from train import make_envs, parse_args_for_train
 
 if __name__ == "__main__":
     # args = parse_args_for_train()
@@ -58,4 +57,8 @@ if __name__ == "__main__":
         )
         model.load_state_dict(state_dict["model"])
 
-    print(model.state_dict()['fc1.weight'])
+    fc1_w = model.state_dict()['fc1.weight'] 
+    importance = torch.abs(torch.sum(fc1_w, axis=0))
+    importance_sorted = torch.sort(importance)
+    print(importance_sorted)
+    print(torch.max(torch.abs(importance)), torch.min(torch.abs(importance)))
