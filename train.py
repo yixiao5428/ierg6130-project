@@ -242,6 +242,10 @@ def train(args):
                 ),
                 iteration=iteration
             )
+            pretty_print({
+                "===== {} Training Iteration {} =====".format(
+                    algo, iteration): stats
+            })
 
         if iteration % config.save_freq == 0:
             trainer_path = trainer.save_w(log_dir, "iter{}".format(iteration))
