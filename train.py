@@ -205,8 +205,8 @@ def train(args):
             ))
 
         # [TODO] Stop training when total_steps is greater than args.max_steps
-        if total_steps > args.max_steps:
-            break
+        # if total_steps > args.max_steps:
+        #     break
 
         iteration += 1
 

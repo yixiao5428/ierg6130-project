@@ -45,6 +45,7 @@ def main():
             clone_state = env.ale.cloneSystemState()
 
             print("RAM", env.ale.getRAM(), env.ale.getRAM().shape)
+            # env.ale.loadROM(env.ale.getRAM())
 
             # Encode the cloned state to a numpy array
             encode_clone_state = env.ale.encodeState(clone_state)
