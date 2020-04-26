@@ -1,0 +1,3 @@
+[submodule "competitive-pong"]
+	path = competitive-pong
+	url = https://github.com/cuhkrlcourse/competitive-pong.git

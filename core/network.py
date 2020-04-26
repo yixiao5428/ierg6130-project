@@ -19,35 +19,40 @@ class ActorCritic(nn.Module):
         init_ = lambda m: self.layer_init(m, nn.init.orthogonal_,
                                           lambda x: nn.init.constant_(x, 0),
                                           nn.init.calculate_gain('relu'))
+
+        num_output_fc = 32
+        self.fc1 = nn.Linear(input_shape[0], 32)
+        self.fc2 = nn.Linear(32, 64)
+        self.fc3 = nn.Linear(64, num_output_fc)
         # The network structure is designed for 42X42 observation.
-        self.conv1 = init_(
-            nn.Conv2d(input_shape[0], 16, kernel_size=4, stride=2))
-        self.conv2 = init_(
-            nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=2))
-        self.conv3 = init_(nn.Conv2d(32, 256, kernel_size=11, stride=1))
+        # self.conv1 = init_(
+        #     nn.Conv2d(input_shape[0], 16, kernel_size=4, stride=2))
+        # self.conv2 = init_(
+        #     nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=2))
+        # self.conv3 = init_(nn.Conv2d(32, 256, kernel_size=11, stride=1))
 
         init_ = lambda m: self.layer_init(
             m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0))
-        self.critic_linear = init_(nn.Linear(self.feature_size(input_shape), 1))
+        self.critic_linear = init_(nn.Linear(num_output_fc, 1))
 
         init_ = lambda m: self.layer_init(
             m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0), gain=0.01
         )
-        self.actor_linear = init_(
-            nn.Linear(self.feature_size(input_shape), num_actions))
+        self.actor_linear = init_(nn.Linear(num_output_fc, num_actions))
 
         self.train()
 
     def forward(self, inputs):
-        x = F.relu(self.conv1(inputs / 255.0))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
+        x = F.relu(self.fc1(inputs / 255.0))
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
         x = x.view(x.size(0), -1)
         value = self.critic_linear(x)
         logits = self.actor_linear(x)
         return logits, value
 
     def feature_size(self, input_shape):
+        print("input_shape", input_shape)
         return self.conv3(self.conv2(self.conv1(
             torch.zeros(1, *input_shape)))).view(1, -1).size(1)
 
