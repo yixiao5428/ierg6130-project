@@ -3,10 +3,10 @@ import os
 import numpy as np
 import torch
 
-from core.a2c_trainer import A2CTrainer, a2c_config
-from core.ppo_trainer import PPOTrainer, ppo_config
-from core.utils import verify_log_dir, pretty_print, Timer, evaluate, \
-    summary, save_progress, FrameStackTensor, step_envs
+# from core.a2c_trainer import A2CTrainer, a2c_config
+# from core.ppo_trainer import PPOTrainer, ppo_config
+# from core.utils import verify_log_dir, pretty_print, Timer, evaluate, \
+#     summary, save_progress, FrameStackTensor, step_envs
 from core.network import ActorCritic
 from train import make_envs, parse_args_for_train
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # else:
     #     trainer = A2CTrainer(envs, config, frame_stack, _test=test)
 
-    trainer_path = "/tmp/ierg6130-project/PPO/checkpoint-iter400.pkl"
+    trainer_path = "/tmp/ierg6130-project/PPO/checkpoint-iter1000.pkl"
     save_path = trainer_path
     model = ActorCritic(torch.Size([512]), 6)
     if os.path.isfile(save_path):
@@ -58,4 +58,4 @@ if __name__ == "__main__":
         )
         model.load_state_dict(state_dict["model"])
 
-    print(model.state_dict)
+    print(model.state_dict()['fc1.weight'])
