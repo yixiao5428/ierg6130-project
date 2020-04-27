@@ -200,45 +200,6 @@ def evaluate(trainer, eval_envs, frame_stack, num_episodes=10, seed=0):
     return reward_recorder, episode_length_recorder
 
 
-def adversarial_step_envs(cpu_actions, envs, episode_rewards, frame_stack_tensor,
-              reward_recorder, length_recorder, total_steps, total_episodes,
-              device, test):
-    """Step the vectorized environments for one step. Process the reward
-    recording and terminal states."""
-    obs, reward, done, info = envs.step(cpu_actions)
-    episode_rewards += reward.reshape(episode_rewards.shape)
-    episode_rewards_old_shape = episode_rewards.shape
-    if not np.isscalar(done[0]):
-        done = np.all(done, axis=1)
-    for idx, d in enumerate(done):
-        if d:  # the episode is done
-            # Record the reward of the terminated episode to
-            reward_recorder.append(episode_rewards[idx].copy())
-
-            # For CartPole-v0 environment, the length of episodes is not
-            # recorded.
-            if "num_steps" in info[idx]:
-                length_recorder.append(info[idx]["num_steps"])
-            total_episodes += 1
-    masks = 1. - done.astype(np.float32)
-
-    episode_rewards *= masks.reshape(-1, 1) # not sure
-
-    assert episode_rewards.shape == episode_rewards_old_shape
-
-    total_steps += obs[0].shape[0] if isinstance(obs, tuple) else obs.shape[0]
-    masks = torch.from_numpy(masks).to(device).view(-1, 1)
-    # frame_stack_tensor is refreshed in-place if done happen.
-    if test:
-        frame_stack_masks = masks.view(-1, 1)
-    else:
-        frame_stack_masks = masks.view(-1, 1, 1, 1)
-    frame_stack_tensor.update(obs[0] if isinstance(obs, tuple) else obs,
-                              frame_stack_masks)
-    return obs, reward, done, info, masks, total_episodes, total_steps, \
-           episode_rewards
-
-
 def adversarial_evaluate(trainer, eval_envs, frame_stack, num_episodes=10, seed=0):
     """This function evaluate the given policy and return the mean episode
     reward.
@@ -254,8 +215,34 @@ def adversarial_evaluate(trainer, eval_envs, frame_stack, num_episodes=10, seed=
         trainer.device
     )
 
+    def produce_perturbed_obs(obs):
+        obs.requires_grad = True
+        logits, pred_values = trainer.model(obs)
+        target_log_prob = torch.zeros_like(logits)
+        target_log_prob[0] = 100
+        target_log_prob[1:] = -100
+        loss = torch.pow(target_log_prob - logits, 2).mean()
+        # ratio = torch.exp(target_log_prob - logits)
+        # loss = ratio
+
+        trainer.model.zero_grad()
+        loss.backward()
+
+        # fgsm
+        epsilon = 5
+        alterable_masks = torch.zeros_like(obs)
+        for i in range(4):
+            offset = i * 512
+            alterable_masks[237+offset:512+offset] = 1
+        obs_grad = obs.grad.data
+        sign_grad = obs_grad.sign()
+        perturbed_obs = obs + epsilon*sign_data_grad * alterable_masks
+
+        return perturbed_obs
+
     def get_action(frame_stack_tensor):
         obs = frame_stack_tensor.get()
+        obs = produce_perturbed_obs(obs)
         if isinstance(obs, np.ndarray):
             obs = torch.from_numpy(obs).to(trainer.device)
         with torch.no_grad():
