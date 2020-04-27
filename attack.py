@@ -3,9 +3,10 @@ import torch
 import numpy as np
 
 from core.ppo_trainer import PPOTrainer, ppo_config
-from competitive_pong import make_envs
-from core.utils import verify_log_dir, pretty_print, Timer, evaluate, \
-    adversial_evaluate, summary, save_progress, FrameStackTensor, step_envs
+# from competitive_pong import make_envs
+from train import make_envs
+from core.utils import verify_log_dir, pretty_print, Timer, evaluate, adversarial_evaluate, \
+    summary, save_progress, FrameStackTensor, step_envs
 
 def attack():
     config = ppo_config
@@ -14,10 +15,10 @@ def attack():
     if torch.cuda.is_available():
         torch.cuda.manual_seed(seed)
     torch.set_num_threads(1)
-    # env_id = "Pong-v0"
-    env_id = "CompetitivePong-v0"
-    load_dir = "./data/mirror/PPO"
-    load_suffix = "best4"
+    env_id = "Pong-ram-v0"
+    # env_id = "CompetitivePong-v0"
+    load_dir = "/tmp/ierg6130-project/PPO"
+    load_suffix = "iter72000"
     log_dir = "./data/attack"
     iteration = 0
     num_envs = 1
@@ -26,11 +27,11 @@ def attack():
 
     eval_envs = make_envs(
         env_id=env_id,
-        seed=seed,
+        # seed=seed,
         log_dir=log_dir,
         num_envs=num_envs,
         asynchronous=False,
-        resized_dim=config.resized_dim
+        # resized_dim=config.resized_dim
     )
 
     frame_stack = 4 if not test else 1
@@ -43,8 +44,7 @@ def attack():
         num_envs, eval_envs.observation_space.shape, frame_stack, config.device)
 
     eval_timer = Timer()
-    evaluate_rewards, evaluate_lengths = adversial_evaluate(
-        trainer, eval_envs, frame_stack, 20)
+    evaluate_rewards, evaluate_lengths = adversarial_evaluate(trainer, eval_envs, frame_stack, 20)
     evaluate_stat = summary(evaluate_rewards, "episode_reward")
     if evaluate_lengths:
         evaluate_stat.update(
