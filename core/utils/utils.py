@@ -201,15 +201,6 @@ def evaluate(trainer, eval_envs, frame_stack, num_episodes=10, seed=0):
 
 
 def adversarial_evaluate(trainer, eval_envs, frame_stack, num_episodes=10, seed=0):
-    """This function evaluate the given policy and return the mean episode
-    reward.
-    :param policy: a function whose input is the observation
-    :param env: an environment instance
-    :param num_episodes: number of episodes you wish to run
-    :param seed: the random seed
-    :return: the averaged episode reward of the given policy.
-    """
-
     frame_stack_tensor = FrameStackTensor(
         eval_envs.num_envs, eval_envs.observation_space.shape, frame_stack,
         trainer.device
@@ -217,11 +208,10 @@ def adversarial_evaluate(trainer, eval_envs, frame_stack, num_episodes=10, seed=
 
     def produce_perturbed_obs(obs):
         obs.requires_grad = True
-        logits, pred_values = trainer.model(obs)
-        target_log_prob = torch.zeros_like(logits)
-        target_log_prob[0] = 100
-        target_log_prob[1:] = -100
-        loss = torch.pow(target_log_prob - logits, 2).mean()
+        logits, _ = trainer.model(obs)
+        target_prob = torch.zeros_like(logits)
+        target_prob[0] = 1
+        loss = torch.pow(target_prob - torch.exp(logits), 2).mean()
         # ratio = torch.exp(target_log_prob - logits)
         # loss = ratio
 
@@ -229,15 +219,14 @@ def adversarial_evaluate(trainer, eval_envs, frame_stack, num_episodes=10, seed=
         loss.backward()
 
         # fgsm
-        epsilon = 5
+        epsilon = 100
         alterable_masks = torch.zeros_like(obs)
-        for i in range(4):
-            offset = i * 512
-            alterable_masks[237+offset:512+offset] = 1
+        alterable_masks[240:] = 1
         obs_grad = obs.grad.data
         sign_grad = obs_grad.sign()
-        perturbed_obs = obs + epsilon*sign_data_grad * alterable_masks
+        perturbed_obs = obs - epsilon * sign_grad * alterable_masks
 
+        obs.requires_grad = False
         return perturbed_obs
 
     def get_action(frame_stack_tensor):
